@@ -117,7 +117,7 @@ export class Particle {
         this.sprite.texture = PIXI.Texture.from(tex);
         this.sprite.visible = false;
         this.valueAdjust = def.ignoreValueAdjust ? 1 : valueAdjust;
-        this.setColor(tint !== undefined ? tint : getColorValue(def.color!));
+        this.setColor(tint ?? getColorValue(def.color!));
 
         if (SDK.disableBloodParticles() && type == "bloodSplat") {
             this.sprite.renderable = false;
@@ -151,6 +151,7 @@ interface EmitterOptions {
     duration?: number;
     radius?: number;
     rateMult?: number;
+    tint?: number | (() => number);
     parent?: PIXI.Container | null;
     color?: number;
 }
@@ -171,6 +172,7 @@ export class Emitter {
     parent!: PIXI.Container | null;
     alpha!: number;
     rateMult!: number;
+    tint!: number | (() => number) | null;
     zOrd!: number;
     color?: number;
 
@@ -189,6 +191,7 @@ export class Emitter {
         this.nextSpawn = 0;
         this.spawnCount = 0;
         this.parent = options.parent || null;
+        this.tint = options.tint ?? null;
         this.alpha = 1;
         this.rateMult = options.rateMult !== undefined ? options.rateMult : 1;
         this.color = options.color;
@@ -332,6 +335,7 @@ export class ParticleBarn {
                         rot,
                         e.parent,
                         e.zOrd,
+                        e.tint === null ? undefined : getColorValue(e.tint)
                     );
                     if (e.color !== undefined) {
                         particle.setColor(e.color);
