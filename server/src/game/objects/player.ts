@@ -38,6 +38,7 @@ import { Client } from "../client.ts";
 import type { Game, JoinTokenData } from "../game.ts";
 import { Group, Team } from "../group.ts";
 import { InventoryManager } from "../inventoryManager.ts";
+import { type PerkInstanceInfo, PerkManager } from "../perkManager";
 import { QuestManager } from "../questManager.ts";
 import { NoOpSocket } from "../socket.ts";
 import { WeaponManager } from "../weaponManager.ts";
@@ -1137,18 +1138,11 @@ export class Player extends BaseGameObject {
     bugleTickerActive = false;
     private _bugleTicker = 0;
 
-    private _perks: Array<{
-        type: string;
-        droppable: boolean;
-        replaceOnDeath?: string;
-        isFromRole?: boolean;
-    }> = [];
+    private _perksManager = new PerkManager();
 
-    get perks(): ReadonlyArray<Player["_perks"][0]> {
-        return this._perks;
+    get perks(): ReadonlyArray<PerkInstanceInfo> {
+        return this._perksManager.perks;
     }
-
-    private _perkTypes: string[] = [];
 
     addPerk(
         type: string,
@@ -1156,13 +1150,7 @@ export class Player extends BaseGameObject {
         replaceOnDeath?: string,
         isFromRole?: boolean,
     ) {
-        this._perks.push({
-            type,
-            droppable,
-            replaceOnDeath,
-            isFromRole,
-        });
-        this._perkTypes.push(type);
+        this._perksManager.addPerk(type, droppable, replaceOnDeath, isFromRole);
 
         switch (type) {
             case "trick_m9": {
@@ -1189,10 +1177,7 @@ export class Player extends BaseGameObject {
     }
 
     removePerk(type: string): void {
-        const idx = this._perks.findIndex((perk) => perk.type === type);
-        if (idx === -1) return;
-        this._perks.splice(idx, 1);
-        this._perkTypes.splice(this._perkTypes.indexOf(type), 1);
+        if (!this._perksManager.removePerk(type)) return;
 
         switch (type) {
             case "trick_m9": {
@@ -1235,7 +1220,7 @@ export class Player extends BaseGameObject {
     }
 
     hasPerk(type: string) {
-        return this._perkTypes.includes(type);
+        return this._perksManager.hasPerk(type);
     }
 
     hasActivePan() {
@@ -2952,8 +2937,9 @@ export class Player extends BaseGameObject {
             }
         }
 
-        for (let i = this.perks.length - 1; i >= 0; i--) {
-            const perk = this.perks[i];
+        const perks = this.perks;
+        for (let i = perks.length - 1; i >= 0; i--) {
+            const perk = perks[i];
             if (perk.droppable || perk.replaceOnDeath) {
                 this.game.lootBarn.addLoot(
                     perk.replaceOnDeath || perk.type,
@@ -2967,8 +2953,7 @@ export class Player extends BaseGameObject {
                 );
             }
         }
-        this._perks.length = 0;
-        this._perkTypes.length = 0;
+        this._perksManager.clear();
 
         // Wipe inventory
         this.invManager.wipeInventory();
