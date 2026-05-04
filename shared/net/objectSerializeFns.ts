@@ -1,3 +1,4 @@
+import { StatusFxDefs } from "../defs/gameObjects/statusFxDefs";
 import { type Action, type Anim, GameConfig, HasteType } from "../gameConfig.ts";
 import type { Vec2 } from "../utils/v2.ts";
 import { BitSizes, type BitStream, Constants } from "./net.ts";
@@ -105,6 +106,10 @@ export interface ObjectsFullData {
         perks: Array<{
             type: string;
             droppable: boolean;
+        }>;
+
+        statusFx: Array<{
+            type: string;
         }>;
     };
     [ObjectType.Obstacle]: {
@@ -261,6 +266,11 @@ export const ObjectSerializeFns: {
                     s.writeBoolean(perk.droppable);
                 });
             }
+
+            const types = data.statusFx.map(effect => effect.type);
+            for (const effect of Object.keys(StatusFxDefs)) {
+                s.writeBoolean(types.includes(effect));
+            }
         },
         /* STRIP_FROM_PROD_CLIENT:END */
         deserializePart: (s, data) => {
@@ -326,6 +336,8 @@ export const ObjectSerializeFns: {
                     };
                 });
             }
+
+            data.statusFx = Object.keys(StatusFxDefs).filter(() => s.readBoolean()).map(type => ({ type }));
         },
     },
     [ObjectType.Obstacle]: {

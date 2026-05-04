@@ -318,5 +318,14 @@ export const SharedAtlas: AtlasDef = {
 
         "map/map-woodpile-01.svg",
         "map/map-woodpile-res-01.svg",
+
+        "particles/part-effect-01.svg",
+        "particles/part-effect-02.svg",
+        "particles/part-effect-03.svg",
+        "particles/part-effect-04.svg",
+        "particles/part-effect-05.svg",
+        "particles/part-effect-06.svg",
+        "particles/part-effect-07.svg",
+        "particles/part-effect-08.svg",
     ],
 };

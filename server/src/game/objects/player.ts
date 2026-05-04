@@ -1242,7 +1242,7 @@ export class Player extends BaseGameObject {
         duration: number,
         conflictPolicy: "override" | "longest" = "longest",
     ): void {
-        let initialData: StatusFxInstanceData[typeof type];
+        let initialData: StatusFxInstanceData[typeof type] = {};
 
         switch (type) {
         }
