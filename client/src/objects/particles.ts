@@ -3260,6 +3260,38 @@ const ParticleDefs: Record<string, ParticleDef> = {
         },
         ignoreValueAdjust: true,
     },
+    status_effect: {
+        image: [
+            "part-effect-01.img",
+            "part-effect-02.img",
+            "part-effect-03.img",
+            "part-effect-04.img",
+            "part-effect-05.img",
+            "part-effect-06.img",
+            "part-effect-07.img",
+            "part-effect-08.img",
+        ],
+        life: new Range(0.75, 1),
+        drag: 0.25,
+        rotVel: 4,
+        scale: {
+            start: new Range(0.1, 0.12),
+            end: new Range(0.05, 0.07),
+            lerp: new Range(0, 1),
+        },
+        alpha: {
+            start: 1,
+            end: 0,
+            lerp: new Range(0.7, 1),
+        },
+        alphaIn: {
+            start: 0,
+            end: 1,
+            lerp: new Range(0, 0.05),
+        },
+        color: 0xFFFFFF,
+        ignoreValueAdjust: true,
+    },
 };
 const EmitterDefs: Record<string, EmitterDef> = {
     smoke_barrel: {
@@ -3537,6 +3569,15 @@ const EmitterDefs: Record<string, EmitterDef> = {
         rate: new Range(0.3, 0.35),
         radius: 1.5,
         speed: new Range(1, 1.5),
+        angle: 0,
+        rot: 0,
+        maxCount: Number.MAX_VALUE,
+    },
+    status_effect: {
+        particle: "status_effect",
+        rate: new Range(0.3, 0.35),
+        radius: 1.5,
+        speed: new Range(0.6, 1.2),
         angle: 0,
         rot: 0,
         maxCount: Number.MAX_VALUE,

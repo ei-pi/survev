@@ -1,11 +1,13 @@
 import * as PIXI from "pixi.js-legacy";
 
 import type { LootDef } from "../../../shared/defs/gameObjectDefs.ts";
-import type { BoostDef, HealDef } from "./../../../shared/defs/gameObjects/gearDefs.ts";
 import type { GunDef } from "../../../shared/defs/gameObjects/gunDefs.ts";
 import type { MeleeDef } from "../../../shared/defs/gameObjects/meleeDefs.ts";
 import type { ThrowableDef } from "../../../shared/defs/gameObjects/throwableDefs.ts";
 import type { ObstacleDef } from "../../../shared/defs/mapObjects/obstacles/obstacleDefs.ts";
+import type { BoostDef, HealDef } from "./../../../shared/defs/gameObjects/gearDefs.ts";
+
+import { StatusFxDefs, type StatusFxKeys } from "../../../shared/defs/gameObjects/statusFxDefs";
 import { GameObjectDefs, MapObjectDefs } from "../../../shared/defs/register.ts";
 import { Action, Anim, GameConfig, HasteType, Input, type WeaponSlot } from "../../../shared/gameConfig.ts";
 import type { ObjectData, ObjectType } from "../../../shared/net/objectSerializeFns.ts";
@@ -33,11 +35,11 @@ import { errorLogManager } from "../errorLogs.ts";
 import type { Ctx } from "../game.ts";
 import { helpers } from "../helpers.ts";
 import type { InputHandler } from "../input.ts";
-import type { InputBinds } from "./../inputBinds.ts";
 import type { SoundHandle } from "../lib/createJS.ts";
 import type { Map } from "../map.ts";
 import type { Renderer } from "../renderer.ts";
 import type { UiManager2 } from "../ui/ui2.ts";
+import type { InputBinds } from "./../inputBinds.ts";
 import { Pool } from "./objectPool.ts";
 import type { Obstacle } from "./obstacle.ts";
 import type { Emitter, ParticleBarn } from "./particles.ts";
@@ -248,6 +250,8 @@ export class Player implements AbstractObject {
         };
     } | null = null;
 
+    statusFxDirty = false;
+
     wasInWater = false;
     weapTypeOld = "";
     visualsDirty = false;
@@ -262,6 +266,7 @@ export class Player implements AbstractObject {
     hasteEmitter: Emitter | null = null;
     passiveHealEmitter: Emitter | null = null;
     adrenalineEmitter: Emitter | null = null;
+    statusFxEmitter: Emitter | null = null;
     downed = false;
     wasDowned = false;
     bleedTicker = 0;
@@ -335,6 +340,7 @@ export class Player implements AbstractObject {
             type: string;
             droppable: boolean;
         }>;
+        m_statusFx: Array<{ type: string }>
     };
 
     m_localData!: {
@@ -486,6 +492,7 @@ export class Player implements AbstractObject {
             m_scale: 1,
             m_role: "",
             m_perks: [],
+            m_statusFx: [],
         };
 
         this.m_localData = {
@@ -520,6 +527,10 @@ export class Player implements AbstractObject {
         if (this.adrenalineEmitter) {
             this.adrenalineEmitter.stop();
             this.adrenalineEmitter = null;
+        }
+        if (this.statusFxEmitter) {
+            this.statusFxEmitter.stop();
+            this.statusFxEmitter = null;
         }
     }
 
@@ -572,6 +583,8 @@ export class Player implements AbstractObject {
             if (!!isNew || !perksEqual(this.m_netData.m_perks, data.perks)) {
                 this.perksDirty = true;
             }
+            this.statusFxDirty = !perksEqual(this.m_netData.m_statusFx, data.statusFx);
+            this.m_netData.m_statusFx = data.statusFx;
 
             this.m_netData.m_perks = data.perks;
             if (data.animSeq != this.anim.seq) {
@@ -1229,6 +1242,35 @@ export class Player implements AbstractObject {
             this.adrenalineEmitter.pos = v2.add(this.m_pos, v2.create(0, 0.1));
             this.adrenalineEmitter.layer = this.renderLayer;
             this.adrenalineEmitter.zOrd = this.renderZOrd + 1;
+        }
+
+
+        const statusFxCount = this.m_netData.m_statusFx.length;
+        if ((statusFxCount > 0 && this.statusFxEmitter === null) || this.statusFxDirty) {
+            this.statusFxEmitter?.stop();
+
+            this.statusFxEmitter = particleBarn.addEmitter("status_effect", {
+                pos: this.m_pos,
+                layer: this.layer,
+                rateMult: statusFxCount === 0 ? 1 : 1 / (1 + Math.log2(statusFxCount)),
+                tint: () => {
+                    // can be desynced if this is called after the status FX are cleared from the server but before the emitter is killed
+                    const currentLength = this.m_netData.m_statusFx.length;
+                    if (currentLength === 0) return 0xFFFFFF;
+                    const idx = this.m_netData.m_statusFx[Math.floor(Math.random() * currentLength)].type as StatusFxKeys;
+                    return StatusFxDefs[idx].color;
+                },
+            });
+            this.statusFxDirty = false;
+        } else if (statusFxCount === 0 && this.statusFxEmitter !== null) {
+            this.statusFxEmitter.stop();
+            this.statusFxEmitter = null;
+        }
+
+        if (this.statusFxEmitter) {
+            this.statusFxEmitter.pos = v2.add(this.m_pos, v2.create(0, 0.1));
+            this.statusFxEmitter.layer = this.renderLayer;
+            this.statusFxEmitter.zOrd = this.renderZOrd + 1;
         }
 
         if (isActivePlayer && !isSpectating) {

@@ -12,4 +12,5 @@ export type StatusFxInstanceData = {
 export interface StatusFxDef {
     readonly type: "status_fx";
     name: string;
+    color: number;
 }
