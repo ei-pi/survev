@@ -643,6 +643,7 @@ export const Main: MapDef = {
         tier_airdrop_melee: [
             { name: "", count: 1, weight: 19 },
             { name: "pan", count: 1, weight: 1 },
+            { name: "totem", count: 1, weight: 2 },
         ],
         tier_airdrop_armor: [
             { name: "helmet03", count: 1, weight: 1 },
@@ -732,7 +733,10 @@ export const Main: MapDef = {
             { name: "outfitCamo", count: 1, weight: 1 },
         ],
         tier_airdrop_faction_outfits: [{ name: "outfitGhillie", count: 1, weight: 1 }],
-        tier_airdrop_faction_melee: [{ name: "pan", count: 1, weight: 1 }],
+        tier_airdrop_faction_melee: [
+            { name: "pan", count: 1, weight: 1 },
+            { name: "totem", count: 1, weight: 0.5 }
+        ],
         tier_perks: [
             { name: "firepower", count: 1, weight: 1 },
             { name: "windwalk", count: 1, weight: 1 },

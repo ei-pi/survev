@@ -361,6 +361,7 @@ const mapDef: PartialMapDef = {
             { name: "fireaxe", count: 1, weight: 1 },
             { name: "sledgehammer", count: 1, weight: 1 },
             { name: "pan", count: 1, weight: 0.5 },
+            { name: "totem", count: 1, weight: 1 },
         ],
         tier_airdrop_outfits: [
             { name: "", count: 1, weight: 25 },

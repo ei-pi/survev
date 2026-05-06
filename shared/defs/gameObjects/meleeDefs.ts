@@ -1135,6 +1135,57 @@ const BaseDefs: Record<string, MeleeDef> = {
             tint: 0xffffff,
         },
     },
+    totem: {
+        name: "Totem of Undying",
+        type: "melee",
+        quality: 1,
+        autoAttack: false,
+        switchDelay: 0.25,
+        damage: 24,
+        obstacleDamage: 1,
+        attack: {
+            offset: {
+                x: 1.35,
+                y: 0,
+            },
+            rad: 0.9,
+            damageTimes: [0.1],
+            cooldownTime: 0.25,
+        },
+        speed: {
+            equip: 1,
+        },
+        anim: {
+            idlePose: "fists",
+            attackAnims: ["fists"],
+        },
+        sound: {
+            swing: "punch_swing_01",
+            deploy: "stow_weapon_01",
+            playerHit: "punch_hit_01",
+        },
+        lootImg: {
+            sprite: "loot-melee-totem.img",
+            tint: 0xffffff,
+            border: "loot-circle-outer-02.img",
+            borderTint: 0xffffff,
+            scale: 0.3,
+            rot: 0,
+        },
+        worldImg: {
+            sprite: "loot-melee-totem.img",
+            pos: {
+                x: 0,
+                y: -40,
+            },
+            rot: 1.571,
+            scale: {
+                x: 0.325,
+                y: 0.325,
+            },
+            tint: 0xffffff,
+        },
+    },
 };
 
 const SkinDefs: Record<string, MeleeDef> = {
