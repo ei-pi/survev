@@ -2521,6 +2521,14 @@ export class Player extends BaseGameObject {
             }
         }
 
+        const absorbed = math.min(finalDamage, this.absorptionHealth);
+        this.absorptionHealth -= absorbed;
+        this.healthDirty = true;
+        finalDamage -= absorbed;
+        if (finalDamage > 0) {
+            this.removeStatusFx("absorption");
+        }
+
         if (this._health - finalDamage < 0) {
             if (this.hasPerk("lifeline")) {
                 // Checks to see if the perk can mitigate the damage
@@ -2541,6 +2549,8 @@ export class Player extends BaseGameObject {
             }
         }
 
+        this.health -= finalDamage;
+
         this.damageTaken += finalDamage;
         if (playerSource && params.source !== this) {
             if (playerSource.groupId !== this.groupId) {
@@ -2553,15 +2563,6 @@ export class Player extends BaseGameObject {
                 });
             }
             this.lastDamagedBy = playerSource;
-        }
-
-        const absorbed = math.min(finalDamage, this.absorptionHealth);
-        this.absorptionHealth -= absorbed;
-        this.healthDirty = true;
-        finalDamage -= absorbed;
-        if (finalDamage > 0) {
-            this.removeStatusFx("absorption");
-            this.health -= finalDamage;
         }
 
         if (this.game.isTeamMode) {
