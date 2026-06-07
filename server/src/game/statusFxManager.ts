@@ -63,8 +63,8 @@ export class StatusFxManager extends SchemaManager<StatusFxInstanceInfo<StatusFx
         }
 
         if (
-            conflictPolicy === "override" ||
-            existing.expirationTimestamp < entry.expirationTimestamp
+            conflictPolicy === "override"
+            || existing.expirationTimestamp < entry.expirationTimestamp
         ) {
             this._addEntry(entry);
             this._mountStatusFx(entry);
@@ -85,7 +85,7 @@ export class StatusFxManager extends SchemaManager<StatusFxInstanceInfo<StatusFx
             case "absorption": {
                 this.owner.absorptionHealth = math.max(
                     this.owner.absorptionHealth,
-                    StatusFxProperties.absorption.hp(entry.potency)
+                    StatusFxProperties.absorption.hp(entry.potency),
                 );
                 break;
             }
@@ -112,9 +112,8 @@ export class StatusFxManager extends SchemaManager<StatusFxInstanceInfo<StatusFx
             switch (entry.type) {
                 case "regeneration": {
                     if (now > entry.data.nextTick) {
-                        entry.data.nextTick =
-                            now +
-                            StatusFxProperties.regeneration.msPerHeal(entry.potency);
+                        entry.data.nextTick = now
+                            + StatusFxProperties.regeneration.msPerHeal(entry.potency);
                         this.owner.health += StatusFxProperties.regeneration.HEAL_AMOUNT;
                     }
                     break;

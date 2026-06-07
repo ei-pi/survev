@@ -375,7 +375,7 @@ export class ParticleBarn {
                         rot,
                         e.parent,
                         e.zOrd,
-                        e.tint === null ? undefined : getColorValue(e.tint)
+                        e.tint === null ? undefined : getColorValue(e.tint),
                     );
                     if (e.color !== undefined) {
                         particle.setColor(e.color);

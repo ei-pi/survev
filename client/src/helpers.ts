@@ -298,8 +298,8 @@ ${r} 0 0 0 0 \
      * - The components are all rounded to the nearest integer
      */
     getColorForStops(
-        stops: ReadonlyArray<{ interp: number, color: RGBAColor }>,
-        interpValue: number
+        stops: ReadonlyArray<{ interp: number; color: RGBAColor }>,
+        interpValue: number,
     ): RGBAColor {
         const stopCount = stops.length;
         if (stopCount < 2) {
