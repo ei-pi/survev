@@ -1,13 +1,13 @@
 import * as PIXI from "pixi.js-legacy";
 
 import type { LootDef } from "../../../shared/defs/gameObjectDefs.ts";
+import type { BoostDef, HealDef } from "./../../../shared/defs/gameObjects/gearDefs.ts";
 import type { GunDef } from "../../../shared/defs/gameObjects/gunDefs.ts";
 import type { MeleeDef } from "../../../shared/defs/gameObjects/meleeDefs.ts";
 import type { ThrowableDef } from "../../../shared/defs/gameObjects/throwableDefs.ts";
 import type { ObstacleDef } from "../../../shared/defs/mapObjects/obstacles/obstacleDefs.ts";
-import type { BoostDef, HealDef } from "./../../../shared/defs/gameObjects/gearDefs.ts";
 
-import { StatusFxDefs, type StatusFxKeys } from "../../../shared/defs/gameObjects/statusFxDefs";
+import { StatusFxDefs, type StatusFxKeys } from "../../../shared/defs/gameObjects/statusFxDefs.ts";
 import { GameObjectDefs, MapObjectDefs } from "../../../shared/defs/register.ts";
 import { Action, Anim, GameConfig, HasteType, Input, type WeaponSlot } from "../../../shared/gameConfig.ts";
 import type { ObjectData, ObjectType } from "../../../shared/net/objectSerializeFns.ts";
@@ -35,11 +35,11 @@ import { errorLogManager } from "../errorLogs.ts";
 import type { Ctx } from "../game.ts";
 import { helpers, type RGBAColor } from "../helpers.ts";
 import type { InputHandler } from "../input.ts";
+import type { InputBinds } from "./../inputBinds.ts";
 import type { SoundHandle } from "../lib/createJS.ts";
 import type { Map } from "../map.ts";
 import type { Renderer } from "../renderer.ts";
 import type { UiManager2 } from "../ui/ui2.ts";
-import type { InputBinds } from "./../inputBinds.ts";
 import { Pool } from "./objectPool.ts";
 import type { Obstacle } from "./obstacle.ts";
 import type { Emitter, EmitterOptions, ParticleBarn } from "./particles.ts";
@@ -342,7 +342,7 @@ export class Player implements AbstractObject {
             type: string;
             droppable: boolean;
         }>;
-        m_statusFx: Array<{ type: string }>
+        m_statusFx: Array<{ type: string }>;
         // because of the net sync tps, this boolean typically gets sent as "true" 3 or 4 times in a row per activation
         // there's not really a way to differentiate that from fast totem pops
         // it also means we need to keep a second boolean to only honor rising edge changes (false -> true)
@@ -1264,7 +1264,6 @@ export class Player implements AbstractObject {
             this.adrenalineEmitter.zOrd = this.renderZOrd + 1;
         }
 
-
         const statusFxCount = this.m_netData.m_statusFx.length;
         if ((statusFxCount > 0 && this.statusFxEmitter === null) || this.statusFxDirty) {
             this.statusFxEmitter?.stop();
@@ -1277,7 +1276,8 @@ export class Player implements AbstractObject {
                     // can be desynced if this is called after the status FX are cleared from the server but before the emitter is killed
                     const currentLength = this.m_netData.m_statusFx.length;
                     if (currentLength === 0) return 0xFFFFFF;
-                    const idx = this.m_netData.m_statusFx[Math.floor(Math.random() * currentLength)].type as StatusFxKeys;
+                    const idx = this.m_netData.m_statusFx[Math.floor(Math.random() * currentLength)]
+                        .type as StatusFxKeys;
                     return StatusFxDefs[idx].color;
                 },
             });
@@ -1320,11 +1320,11 @@ export class Player implements AbstractObject {
                             interp: 1,
                             color: [0, 204, 51, 1],
                         },
-                    ] as Array<{ interp: number, color: RGBAColor }>;
+                    ] as Array<{ interp: number; color: RGBAColor }>;
 
                     const [r, g, b] = helpers.getColorForStops(stops, Math.random());
                     return (r << 16) | (g << 8) | b;
-                }
+                },
             });
             const expiration = Date.now() + 2e3;
             audioManager.playSound("totem", {

@@ -1,4 +1,4 @@
-import { SchemaManager } from "./schemaManager";
+import { SchemaManager } from "./schemaManager.ts";
 
 export type PerkInstanceInfo = {
     type: string;
