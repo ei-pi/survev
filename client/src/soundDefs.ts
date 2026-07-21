@@ -873,6 +873,14 @@ const Sounds: Record<string, Record<string, SoundDef>> = {
             path: "audio/ui/stow_weapon_01.mp3",
             volume: 1,
         },
+        ender_pearl_tele_01: {
+            path: "audio/sfx/ender_pearl_tele_01.mp3",
+            volume: 1.25,
+        },
+        ender_pearl_tele_02: {
+            path: "audio/sfx/ender_pearl_tele_02.mp3",
+            volume: 1.25,
+        },
     },
     hits: {
         stone_bullet_hit_01: {
@@ -1387,6 +1395,10 @@ const Sounds: Record<string, Record<string, SoundDef>> = {
             path: "audio/sfx/tomato_01.mp3",
             volume: 1,
             preload: false,
+        },
+        ender_pearl_throw_01: {
+            path: "audio/sfx/ender_pearl_throw_01.mp3",
+            volume: 0.5,
         },
         stow_weapon_01: {
             path: "audio/ui/stow_weapon_01.mp3",

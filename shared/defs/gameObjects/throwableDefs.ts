@@ -978,4 +978,66 @@ export const ThrowableDefs: Record<string, ThrowableDef> = {
         },
         emoteId: 210,
     },
+    ender_pearl: {
+        name: "Ender Pearl",
+        type: "throwable",
+        quality: 0,
+        explosionType: "",
+        inventoryOrder: 1,
+        cookable: true,
+        explodeOnImpact: false,
+        playerCollision: true,
+        fuseTime: 9999,
+        aimDistance: 0,
+        rad: 1,
+        throwPhysics: {
+            playerVelMult: 0.6,
+            velZ: 3.35,
+            speed: 30,
+            spinVel: 1 * Math.PI,
+            spinDrag: 1,
+        },
+        speed: { equip: 0, attack: 0 },
+        lootImg: {
+            sprite: "loot-throwable-ender-pearl.img",
+            tint: 0xff00,
+            border: "loot-circle-outer-01.img",
+            borderTint: 0,
+            scale: 0.2,
+        },
+        worldImg: {
+            sprite: "proj-ender-pearl.img",
+            scale: 0.12,
+            tint: 0xffffff,
+        },
+        handImg: {
+            equip: {
+                right: {
+                    sprite: "proj-ender-pearl.img",
+                    pos: { x: 4.2, y: 4.2 },
+                    scale: 0.14,
+                },
+                left: { sprite: "none" },
+            },
+            cook: {
+                right: {
+                    sprite: "proj-ender-pearl.img",
+                    pos: { x: 4.2, y: 4.2 },
+                    scale: 0.14,
+                },
+                left: { sprite: "none" },
+            },
+            throwing: {
+                right: { sprite: "none" },
+                left: { sprite: "none" },
+            },
+        },
+        useThrowParticles: false,
+        sound: {
+            pullPin: "",
+            throwing: "ender_pearl_throw_01",
+            pickup: "frag_pickup_01",
+            deploy: "frag_deploy_01",
+        },
+    },
 };

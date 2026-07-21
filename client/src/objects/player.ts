@@ -292,6 +292,8 @@ export class Player implements AbstractObject {
     renderZOrd = 18;
     renderZIdx = 0;
 
+    pearlTeleported = false;
+
     m_action!: {
         type: Action;
         seq: number;
@@ -335,6 +337,7 @@ export class Player implements AbstractObject {
             type: string;
             droppable: boolean;
         }>;
+        m_pearlTeleport: boolean;
     };
 
     m_localData!: {
@@ -486,6 +489,7 @@ export class Player implements AbstractObject {
             m_scale: 1,
             m_role: "",
             m_perks: [],
+            m_pearlTeleport: false,
         };
 
         this.m_localData = {
@@ -577,6 +581,8 @@ export class Player implements AbstractObject {
             if (data.animSeq != this.anim.seq) {
                 this.playAnim(data.animType, data.animSeq);
             }
+            this.pearlTeleported = !this.m_netData.m_pearlTeleport && data.pearlTeleport;
+            this.m_netData.m_pearlTeleport = data.pearlTeleport;
             this.m_action.type = data.actionType;
             this.m_action.seq = data.actionSeq;
             this.m_action.item = data.actionItem;
@@ -1256,6 +1262,18 @@ export class Player implements AbstractObject {
             if (!inputBinds.isBindDown(Input.Fire)) {
                 this.playedDryFire = false;
             }
+        }
+
+        if (this.pearlTeleported) {
+            this.pearlTeleported = false;
+            audioManager.playSound(util.randomItem(["ender_pearl_tele_01", "ender_pearl_tele_02"]), {
+                channel: "otherPlayers",
+                soundPos: isActivePlayer
+                    // because otherwise, the pearl sound will be offset for yourself
+                    ? camera.m_pos
+                    : this.m_pos,
+                layer: this.layer,
+            });
         }
 
         // Decay gun recoil

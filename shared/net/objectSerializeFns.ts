@@ -106,6 +106,8 @@ export interface ObjectsFullData {
             type: string;
             droppable: boolean;
         }>;
+
+        pearlTeleport: boolean;
     };
     [ObjectType.Obstacle]: {
         healthT: number;
@@ -219,6 +221,8 @@ export const ObjectSerializeFns: {
             s.writeBoolean(data.healEffect);
             s.writeBoolean(data.lastStandEffect);
 
+            s.writeBoolean(data.pearlTeleport);
+
             s.writeBoolean(data.frozen);
             if (data.frozen) {
                 s.writeBits(data.frozenOri, 2);
@@ -287,6 +291,8 @@ export const ObjectSerializeFns: {
             data.wearingPan = s.readBoolean();
             data.healEffect = s.readBoolean();
             data.lastStandEffect = s.readBoolean();
+
+            data.pearlTeleport = s.readBoolean();
 
             data.frozen = s.readBoolean();
             data.frozenOri = 0;

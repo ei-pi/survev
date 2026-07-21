@@ -408,6 +408,7 @@ export const GameConfig = {
         flare: [2, 4, 6, 8],
         "45acp": [90, 180, 240, 300],
         frag: [3, 6, 9, 12],
+        ender_pearl: [1, 2, 4, 8],
         smoke: [3, 6, 9, 12],
         strobe: [2, 3, 4, 5],
         mirv: [2, 4, 6, 8],

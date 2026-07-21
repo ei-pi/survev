@@ -15,7 +15,7 @@ const gravity = 10.5;
 
 export class ProjectileBarn {
     projectiles: Projectile[] = [];
-    constructor(readonly game: Game) {}
+    constructor(readonly game: Game) { }
 
     update(dt: number) {
         for (let i = 0; i < this.projectiles.length; i++) {
@@ -223,6 +223,8 @@ export class Projectile extends BaseGameObject {
             // drag values based on plotted data from surviv
             const drag = isOnWater ? 5 : 2.3;
             this.vel = v2.mul(this.vel, 1 / (1 + dt * drag));
+
+            this.teleportIfEnderPearl();
         }
 
         const posOld = v2.copy(this.pos);
@@ -242,6 +244,8 @@ export class Projectile extends BaseGameObject {
         if (def.throwPhysics.fixedCollisionHeight) {
             height = def.throwPhysics.fixedCollisionHeight;
         }
+
+        if (this.destroyed) return;
 
         //
         // Collision and changing layers on stair
@@ -322,6 +326,9 @@ export class Projectile extends BaseGameObject {
 
                             this.vel = v2.mul(newDir, velLength * velocityScale);
                             this.dir = v2.normalizeSafe(this.vel);
+                            if (this.teleportIfEnderPearl()) {
+                                break;
+                            }
                         }
                     } else if (obj.collidable) {
                         this.obstacleBellowHeight = math.max(
@@ -339,6 +346,10 @@ export class Projectile extends BaseGameObject {
                 && obj.__id !== this.playerId
             ) {
                 if (coldet.testCircleCircle(this.pos, rad, obj.pos, obj.rad)) {
+                    if (this.teleportIfEnderPearl()) {
+                        break;
+                    }
+
                     this.explode();
                 }
             }
@@ -377,6 +388,26 @@ export class Projectile extends BaseGameObject {
                 this.explode();
             }
         }
+    }
+
+    private teleportIfEnderPearl(): boolean {
+        if (this.type !== "ender_pearl") return false;
+        const source = this.game.objectRegister.getById(this.playerId);
+        if (source?.__type !== ObjectType.Player) return false;
+
+        source.teleportTo(this.pos, this.layer);
+        source.damage({
+            amount: 10,
+            damageType: DamageType.Player,
+            dir: this.dir,
+            gameSourceType: this.type,
+            weaponSourceType: this.weaponSourceType,
+            source,
+        });
+        source.pearlTeleport = true;
+        this.dead = true;
+        this.destroy();
+        return true;
     }
 
     /**
