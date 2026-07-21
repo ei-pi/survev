@@ -436,6 +436,13 @@ export class PlayerBarn {
             if (flushPlayerStatus) {
                 player.playerStatusDirty = false;
             }
+
+            if (player.totemActivated) {
+                player.totemActivated = false;
+                player.totemStatusSent = true;
+                // player cannot be set to dirty here because all game
+                // objects are cleaned later in the calling method (Game.netSync)
+            }
         }
     }
 
@@ -614,6 +621,9 @@ export class Player extends BaseGameObject {
     spectatorCountDirty = false;
     hasFiredFlare = false;
     flareTimer = 0;
+
+    totemActivated = false;
+    totemStatusSent = false;
 
     sendDeathEmoteTicker = 0;
     sentDeathEmote = false;
@@ -1474,9 +1484,6 @@ export class Player extends BaseGameObject {
 
         this.weaponManager.showNextThrowable();
         this.recalculateScale();
-
-        this.addStatusFx("absorption", 4, Infinity);
-        this.addStatusFx("regeneration", 2, Infinity);
     }
 
     update(dt: number): void {
@@ -1861,6 +1868,11 @@ export class Player extends BaseGameObject {
         }
 
         this._statusFxManager.update();
+
+        if (this.totemStatusSent) {
+            this.totemStatusSent = false;
+            this.setDirty();
+        }
 
         if (this.hasPerk("fabricate")) {
             if (this.fabricateThrowablesLeft.length > 0) {
@@ -2516,6 +2528,7 @@ export class Player extends BaseGameObject {
             }
         }
 
+        // first, deplete absorption
         const absorbed = math.min(finalDamage, this.absorptionHealth);
         this.absorptionHealth -= absorbed;
         this.healthDirty = true;
@@ -2524,18 +2537,32 @@ export class Player extends BaseGameObject {
             this.removeStatusFx("absorption");
         }
 
+        // then check for lifeline
+        let triedLifelineSave = false;
         if (this._health - finalDamage < 0) {
             if (this.hasPerk("lifeline")) {
                 // Checks to see if the perk can mitigate the damage
-                const excessDamage = finalDamage - this._health + 1; // Amount to mitigate to survive on 1 health.
-                if (this.boost / PerkProperties.lifeline.conversionRate >= excessDamage) {
-                    this.boost -= excessDamage * PerkProperties.lifeline.conversionRate;
+
+                // Amount of damage needed to survive on 1 health.
+                const excessDamage = finalDamage - this._health + 1;
+                // Amount of adrenaline needed to mitigate said damage
+                const adrenCost = excessDamage * PerkProperties.lifeline.conversionRate;
+
+                if (this.boost >= adrenCost) {
+                    this.boost -= adrenCost;
                     finalDamage = this._health - 1;
                     this.lastStandEffect = true;
                     this.lastStandEffectTicker = 1;
                     this.setDirty();
                 } else {
                     // If the perk cannot mitigate, kill the player
+                    // but if the player had adrenaline, then we'll record that
+                    // the save was attempted (for interop with totems)
+                    if (this.boost > 0) {
+                        triedLifelineSave = true;
+                        this.boost = 0;
+                        this.setDirty();
+                    }
                     finalDamage = this.health;
                 }
             } else {
@@ -2545,6 +2572,25 @@ export class Player extends BaseGameObject {
         }
 
         this.health -= finalDamage;
+
+        // and lastly, totems (both lifeline & a totem can trigger for a single damage event)
+        if (this._health <= 0) {
+            if (this.weaponManager.activeWeapon === "totem") {
+                this._health = 1;
+                this.addStatusFx("absorption", 2, 5e3);
+                this.addStatusFx("regeneration", 2, 45e3);
+                this.weaponManager.setWeapon(2, "fists", 0);
+                this.totemActivated = true;
+
+                if (triedLifelineSave) {
+                    // show the player that both lifeline & the totem triggered
+                    this.lastStandEffect = true;
+                    this.lastStandEffectTicker = 1;
+                }
+
+                this.setDirty();
+            }
+        }
 
         this.damageTaken += finalDamage;
         if (playerSource && params.source !== this) {

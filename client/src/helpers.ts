@@ -4,8 +4,11 @@ import type { MeleeDef } from "../../shared/defs/gameObjects/meleeDefs.ts";
 import { type MapDefKey, MapDefs } from "../../shared/defs/mapDefs.ts";
 import { GameObjectDefs } from "../../shared/defs/register.ts";
 import * as net from "../../shared/net/net.ts";
+import { math } from "../../shared/utils/math";
 import { util } from "../../shared/utils/util.ts";
 import { device } from "./device.ts";
+
+export type RGBAColor = [number, number, number, number];
 
 const truncateCanvas = document.createElement("canvas");
 
@@ -279,5 +282,69 @@ ${r} 0 0 0 0 \
                 window.turnstile.remove("#start-turnstile-container");
             },
         });
+    },
+    /**
+     * Given a set of color stops and an interpolation value, calculates the color at that value
+     * Color inputs & output are in [r, g, b, a] with integer components ranging from 0-255. Stops &
+     * interpolation values range from 0 to 1
+     *
+     * Preconditions:
+     * - `stops` is sorted in ascending order on `interp`
+     * - `stops` must not contain two stops with the same `interp`
+     * - `stops` has at least two elements
+     *
+     * Postconditions:
+     * - The returned color array is a new array instance
+     * - The components are all rounded to the nearest integer
+     */
+    getColorForStops(
+        stops: ReadonlyArray<{ interp: number, color: RGBAColor }>,
+        interpValue: number
+    ): RGBAColor {
+        const stopCount = stops.length;
+        if (stopCount < 2) {
+            throw new Error("Invalid gradient; at least two stops are needed");
+        }
+
+        if (interpValue < stops[0].interp) {
+            return [...stops[0].color];
+        }
+
+        // not strictly needed; would be handled by the loop
+        // this is a fast-track
+        if (interpValue >= stops[stopCount - 1].interp) {
+            return [...stops[stopCount - 1].color];
+        }
+
+        for (let i = 0, j = 1; j < stopCount; i = j++) {
+            const next = stops[j];
+
+            // matches endpoint
+            if (interpValue === next.interp) {
+                return [...next.color];
+            }
+
+            // not this pair, continue to next pair
+            if (interpValue > next.interp) {
+                continue;
+            }
+
+            // interpValue is within this pair, interpolate colors
+            const curr = stops[i];
+
+            const relativeInterp = math.remap(interpValue, curr.interp, next.interp, 0, 1);
+
+            // could also be done as four successive remap calls like
+            // math.remap(interpValue, curr.interp, next.interp, curr.color[…], next.color[…])
+            // but that would come out to more divisions (and arguably less readable)
+            return [
+                Math.round(math.lerp(relativeInterp, curr.color[0], next.color[0])),
+                Math.round(math.lerp(relativeInterp, curr.color[1], next.color[1])),
+                Math.round(math.lerp(relativeInterp, curr.color[2], next.color[2])),
+                Math.round(math.lerp(relativeInterp, curr.color[3], next.color[3])),
+            ];
+        }
+
+        throw new Error("Bad gradient");
     },
 };

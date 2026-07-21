@@ -327,5 +327,12 @@ export const SharedAtlas: AtlasDef = {
         "particles/part-effect-06.svg",
         "particles/part-effect-07.svg",
         "particles/part-effect-08.svg",
+
+        "particles/part-totem-01.svg",
+        "particles/part-totem-02.svg",
+        "particles/part-totem-03.svg",
+        "particles/part-totem-04.svg",
+        "particles/part-totem-05.svg",
+        "particles/part-totem-06.svg",
     ],
 };

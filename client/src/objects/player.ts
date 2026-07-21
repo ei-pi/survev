@@ -33,7 +33,7 @@ import { debugLines } from "../debug/debugLines.ts";
 import { device } from "../device.ts";
 import { errorLogManager } from "../errorLogs.ts";
 import type { Ctx } from "../game.ts";
-import { helpers } from "../helpers.ts";
+import { helpers, type RGBAColor } from "../helpers.ts";
 import type { InputHandler } from "../input.ts";
 import type { SoundHandle } from "../lib/createJS.ts";
 import type { Map } from "../map.ts";
@@ -267,6 +267,8 @@ export class Player implements AbstractObject {
     passiveHealEmitter: Emitter | null = null;
     adrenalineEmitter: Emitter | null = null;
     statusFxEmitter: Emitter | null = null;
+    totemEmitters: [emitter: Emitter, expiration: number][] = [];
+    totemActivated = false;
     downed = false;
     wasDowned = false;
     bleedTicker = 0;
@@ -341,6 +343,10 @@ export class Player implements AbstractObject {
             droppable: boolean;
         }>;
         m_statusFx: Array<{ type: string }>
+        // because of the net sync tps, this boolean typically gets sent as "true" 3 or 4 times in a row per activation
+        // there's not really a way to differentiate that from fast totem pops
+        // it also means we need to keep a second boolean to only honor rising edge changes (false -> true)
+        m_totemActivated: boolean;
     };
 
     m_localData!: {
@@ -494,6 +500,7 @@ export class Player implements AbstractObject {
             m_role: "",
             m_perks: [],
             m_statusFx: [],
+            m_totemActivated: false,
         };
 
         this.m_localData = {
@@ -534,6 +541,10 @@ export class Player implements AbstractObject {
             this.statusFxEmitter.stop();
             this.statusFxEmitter = null;
         }
+        for (const [totemEmitter] of this.totemEmitters) {
+            totemEmitter.stop();
+        }
+        this.totemEmitters.length = 0;
     }
 
     m_updateData(
@@ -587,6 +598,9 @@ export class Player implements AbstractObject {
             }
             this.statusFxDirty = !perksEqual(this.m_netData.m_statusFx, data.statusFx);
             this.m_netData.m_statusFx = data.statusFx;
+
+            this.totemActivated = !this.m_netData.m_totemActivated && data.totemActivated;
+            this.m_netData.m_totemActivated = data.totemActivated;
 
             this.m_netData.m_perks = data.perks;
             if (data.animSeq != this.anim.seq) {
@@ -1275,6 +1289,61 @@ export class Player implements AbstractObject {
             this.statusFxEmitter.layer = this.renderLayer;
             this.statusFxEmitter.zOrd = this.renderZOrd + 1;
         }
+
+        if (this.totemActivated) {
+            this.totemActivated = false;
+            const emitter = particleBarn.addEmitter("totem_activate", {
+                pos: this.m_pos,
+                layer: this.layer,
+                tint: () => {
+                    const stops = [
+                        {
+                            interp: 0,
+                            color: [26, 102, 0, 1],
+                        },
+                        {
+                            interp: 0.25,
+                            color: [153, 153, 0, 1],
+                        },
+                        {
+                            interp: 0.5,
+                            color: [77, 153, 51, 1],
+                        },
+                        {
+                            interp: 0.75,
+                            color: [204, 204, 51, 1],
+                        },
+                        {
+                            interp: 1,
+                            color: [0, 204, 51, 1],
+                        },
+                    ] as Array<{ interp: number, color: RGBAColor }>;
+
+                    const [r, g, b] = helpers.getColorForStops(stops, Math.random());
+                    return (r << 16) | (g << 8) | b;
+                }
+            });
+            const expiration = Date.now() + 2e3;
+            audioManager.playSound("totem", {
+                channel: "otherPlayers",
+                soundPos: this.m_pos,
+                layer: this.layer,
+            });
+
+            this.totemEmitters.push([emitter, expiration]);
+        }
+
+        this.totemEmitters = this.totemEmitters.filter(([emitter, expiration]) => {
+            if (Date.now() > expiration) {
+                emitter.stop();
+                return false;
+            }
+
+            emitter.pos = v2.add(this.m_pos, v2.create(0, 0.1));
+            emitter.layer = this.renderLayer;
+            emitter.zOrd = this.renderZOrd + 1;
+            return true;
+        });
 
         if (isActivePlayer && !isSpectating) {
             const curWeapIdx = this.m_localData.m_curWeapIdx;
