@@ -35,6 +35,8 @@ export class Particle {
     def = {} as ParticleDef;
     sprite = new PIXI.Sprite();
     hasParent = false;
+    spriteAnimationStyle!: NonNullable<ParticleDef["spriteAnimation"]>["style"];
+    spriteChanges!: [interp: number, sprite: string][];
 
     pos!: Vec2;
     vel!: Vec2;
@@ -111,9 +113,46 @@ export class Particle {
         this.alphaInStart = this.alphaIn ? getRangeValue(def.alphaIn!.start!) : 0;
         this.alphaInEnd = this.alphaIn ? getRangeValue(def.alphaIn!.end!) : 0;
         this.emitterIdx = -1;
-        const tex = Array.isArray(def.image)
-            ? util.randomItem(def.image)
-            : def.image;
+
+        const anim = def.spriteAnimation ?? { style: "static" };
+
+        const sprites = def.image.length;
+        const idx = anim.style === "sequential"
+            ? 0
+            : Math.floor(Math.random() * sprites);
+
+        this.spriteAnimationStyle = anim.style ?? "static";
+
+        // precalculate all the times we'll need to change sprite
+        switch (anim.style) {
+            case "static": {
+                this.spriteChanges = [];
+                break;
+            }
+            case "random": {
+                const stepSize = anim.interval / this.life;
+                this.spriteChanges = Array.from(
+                    { length: Math.ceil(this.life / anim.interval) },
+                    (_, i) => [
+                        (i + 1) * stepSize,
+                        util.randomItem(def.image),
+                    ],
+                );
+                break;
+            }
+            case "sequential": {
+                this.spriteChanges = Array.from(
+                    { length: sprites - 1 },
+                    (_, i) => [
+                        (i + 1) / sprites,
+                        def.image[i],
+                    ],
+                );
+                break;
+            }
+        }
+
+        const tex = def.image[idx];
         this.sprite.texture = PIXI.Texture.from(tex);
         this.sprite.visible = false;
         this.valueAdjust = def.ignoreValueAdjust ? 1 : valueAdjust;
@@ -129,6 +168,7 @@ export class Particle {
     free() {
         this.active = false;
         this.sprite.visible = false;
+        this.spriteChanges.length = 0;
     }
 
     setDelay(delay: number) {
@@ -373,6 +413,14 @@ export class ParticleBarn {
                 if (p.alphaUseExp) {
                     p.alpha = math.max(p.alpha + dt * p.alphaExp, 0);
                 }
+
+                if (p.spriteChanges.length > 0) {
+                    if (t > p.spriteChanges[0][0]) {
+                        p.sprite.texture = PIXI.Texture.from(p.spriteChanges[0][1]);
+                        p.spriteChanges.shift();
+                    }
+                }
+
                 const pos = p.hasParent ? p.pos : camera.m_pointToScreen(p.pos);
                 let scale = p.scaleUseExp
                     ? p.scale
@@ -3586,6 +3634,26 @@ const EmitterDefs: Record<string, EmitterDef> = {
 
 export interface ParticleDef {
     image: string[];
+    /**
+     * Controls how the particle's sprite evolves over its lifetime.
+     * There are three options:
+     *
+     * - `static`: The default. A random sprite is picked when the particle spawns,
+     * and the particle always shows it
+     * - `random`: A random sprite is picked on-spawn. Every `interval` seconds,
+     * pick a new random sprite from the list.
+     * - `sequential`: The first sprite from the list is picked, and the list of
+     * sprites is traversed as the particle ages. Each sprite of the list gets an
+     * even amount of time
+     */
+    spriteAnimation?: {
+        style: "static";
+    } | {
+        style: "random";
+        interval: number;
+    } | {
+        style: "sequential";
+    };
     zOrd?: number;
     life: RangeNumber;
     drag: RangeNumber;
@@ -3611,6 +3679,7 @@ export interface ParticleDef {
     color?: number | (() => number);
     ignoreValueAdjust?: boolean;
 }
+
 type RangeNumber = Range | number;
 
 export interface EmitterDef {
