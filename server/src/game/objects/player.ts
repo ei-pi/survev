@@ -14,6 +14,8 @@ import type { MeleeDef } from "../../../../shared/defs/gameObjects/meleeDefs.ts"
 import { PerkProperties } from "../../../../shared/defs/gameObjects/perkDefs.ts";
 import type { ThrowableDef } from "../../../../shared/defs/gameObjects/throwableDefs.ts";
 import { UnlockDefs } from "../../../../shared/defs/gameObjects/unlockDefs.ts";
+
+import { type StatusFxInstanceData, type StatusFxKeys } from "../../../../shared/defs/gameObjects/statusFxDefs.ts";
 import { GameObjectDefs, MapObjectDefs } from "../../../../shared/defs/register.ts";
 import {
     type Action,
@@ -40,7 +42,14 @@ import { Group, Team } from "../group.ts";
 import { InventoryManager } from "../inventoryManager.ts";
 import { type PerkInstanceInfo, PerkManager } from "../perkManager";
 import { QuestManager } from "../questManager.ts";
+<<<<<<< HEAD
 import { NoOpSocket } from "../socket.ts";
+||||||| parent of 4647ffe7 (feat(server): status effects)
+import { type ClientSocket, NoOpSocket } from "../socket.ts";
+=======
+import { type ClientSocket, NoOpSocket } from "../socket.ts";
+import { type StatusFxInstanceInfo, StatusFxManager } from "../statusFxManager";
+>>>>>>> 4647ffe7 (feat(server): status effects)
 import { WeaponManager } from "../weaponManager.ts";
 import type { Building } from "./building.ts";
 import { BaseGameObject, type DamageParams, type GameObject } from "./gameObject.ts";
@@ -1130,13 +1139,19 @@ export class Player extends BaseGameObject {
         return this._perksManager.perks;
     }
 
+    private _statusFxManager = new StatusFxManager(this);
+
+    get statusFx(): ReadonlyArray<StatusFxInstanceInfo<StatusFxKeys>> {
+        return this._statusFxManager.statusFxs;
+    }
+
     addPerk(
         type: string,
         droppable = false,
         replaceOnDeath?: string,
         isFromRole?: boolean,
     ) {
-        this._perksManager.addPerk(type, droppable, replaceOnDeath, isFromRole);
+        this._perksManager.addEntry(type, droppable, replaceOnDeath, isFromRole);
 
         switch (type) {
             case "trick_m9": {
@@ -1163,7 +1178,7 @@ export class Player extends BaseGameObject {
     }
 
     removePerk(type: string): void {
-        if (!this._perksManager.removePerk(type)) return;
+        if (!this._perksManager.removeEntry(type)) return;
 
         switch (type) {
             case "trick_m9": {
@@ -1206,7 +1221,35 @@ export class Player extends BaseGameObject {
     }
 
     hasPerk(type: string) {
-        return this._perksManager.hasPerk(type);
+        return this._perksManager.hasEntry(type);
+    }
+
+    /**
+     * @param conflictPolicy If a player already has effect X of a lower level, what should this call do?
+     * `override` replaces the lower version with this one, `longest` picks the longest of the two
+     */
+    addStatusFx(
+        type: StatusFxKeys,
+        potency: number,
+        duration: number,
+        conflictPolicy: "override" | "longest" = "longest",
+    ): void {
+        let initialData: StatusFxInstanceData[typeof type];
+
+        switch (type) {
+        }
+
+        this._statusFxManager.addEntry(type, potency, duration, initialData, conflictPolicy);
+        this.setDirty();
+    }
+
+    removeStatusFx(type: string): void {
+        this._statusFxManager.removeEntry(type);
+        this.setDirty();
+    }
+
+    hasStatusFx(type: string): boolean {
+        return this._statusFxManager.hasEntry(type);
     }
 
     hasActivePan() {
@@ -1789,6 +1832,8 @@ export class Player extends BaseGameObject {
                 this.weapsDirty = true;
             }
         }
+
+        this._statusFxManager.update();
 
         if (this.hasPerk("fabricate")) {
             if (this.fabricateThrowablesLeft.length > 0) {
@@ -2933,6 +2978,7 @@ export class Player extends BaseGameObject {
             }
         }
         this._perksManager.clear();
+        this._statusFxManager.clear();
 
         // Wipe inventory
         this.invManager.wipeInventory();
