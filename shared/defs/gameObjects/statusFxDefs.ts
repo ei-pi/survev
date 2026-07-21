@@ -4,6 +4,11 @@ export const StatusFxDefs = {
         type: "status_fx",
         color: 0xCD5CAB,
     },
+    absorption: {
+        name: "Absorption",
+        type: "status_fx",
+        color: 0x2552A5,
+    },
 } satisfies Record<string, StatusFxDef>;
 
 export type StatusFxKeys = keyof typeof StatusFxDefs;
@@ -16,12 +21,18 @@ export const StatusFxProperties = {
         },
         HEAL_AMOUNT: 5,
     },
+    absorption: {
+        hp(level: number) {
+            return 20 * level;
+        },
+    },
 };
 
 export type StatusFxInstanceData = {
     regeneration: {
         nextTick: number;
     };
+    absorption: {};
 };
 
 export interface StatusFxDef {

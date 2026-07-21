@@ -529,6 +529,7 @@ export class Client {
                 health: player.health,
                 boostDirty: true,
                 boost: player.boost,
+                absorptionHealth: player.absorptionHealth,
                 zoomDirty: true,
                 zoom: player.zoom,
                 actionDirty: true,

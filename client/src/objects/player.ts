@@ -345,6 +345,7 @@ export class Player implements AbstractObject {
 
     m_localData!: {
         m_health: number;
+        m_absorptionHealth: number;
         m_zoom: number;
         m_boost: number;
         m_scope: string;
@@ -497,6 +498,7 @@ export class Player implements AbstractObject {
 
         this.m_localData = {
             m_health: GameConfig.player.health,
+            m_absorptionHealth: 0,
             m_zoom: 0,
             m_boost: 0,
             m_scope: "",
@@ -609,6 +611,7 @@ export class Player implements AbstractObject {
 
         if (data.healthDirty) {
             this.m_localData.m_health = data.health;
+            this.m_localData.m_absorptionHealth = data.absorptionHealth;
         }
 
         if (data.boostDirty) {

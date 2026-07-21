@@ -10,7 +10,10 @@ import {
 
 function serializeActivePlayer(s: BitStream, data: LocalDataWithDirty) {
     s.writeBoolean(data.healthDirty);
-    if (data.healthDirty) s.writeFloat(data.health, 0, 100, 8);
+    if (data.healthDirty) {
+        s.writeFloat(data.health, 0, 100, 8);
+        s.writeFloat(data.absorptionHealth, 0, 100, 8);
+    }
 
     s.writeBoolean(data.boostDirty);
     if (data.boostDirty) s.writeFloat(data.boost, 0, 100, 8);
@@ -56,6 +59,7 @@ function deserializeActivePlayer(s: BitStream, data: LocalDataWithDirty) {
     data.healthDirty = s.readBoolean();
     if (data.healthDirty) {
         data.health = s.readFloat(0, 100, 8);
+        data.absorptionHealth = s.readFloat(0, 100, 8);
     }
     data.boostDirty = s.readBoolean();
     if (data.boostDirty) {
@@ -812,6 +816,7 @@ export interface Action {
 
 export interface LocalData {
     health: number;
+    absorptionHealth: number;
     zoom: number;
     boost: number;
     scope: string;
