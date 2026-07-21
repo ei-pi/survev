@@ -873,6 +873,10 @@ const Sounds: Record<string, Record<string, SoundDef>> = {
             path: "audio/ui/stow_weapon_01.mp3",
             volume: 1,
         },
+        totem: {
+            path: "audio/sfx/totem.mp3",
+            volume: 1,
+        },
     },
     hits: {
         stone_bullet_hit_01: {

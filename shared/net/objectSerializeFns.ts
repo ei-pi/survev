@@ -111,6 +111,8 @@ export interface ObjectsFullData {
         statusFx: Array<{
             type: string;
         }>;
+
+        totemActivated: boolean;
     };
     [ObjectType.Obstacle]: {
         healthT: number;
@@ -271,6 +273,8 @@ export const ObjectSerializeFns: {
             for (const effect of Object.keys(StatusFxDefs)) {
                 s.writeBoolean(types.includes(effect));
             }
+
+            s.writeBoolean(data.totemActivated);
         },
         /* STRIP_FROM_PROD_CLIENT:END */
         deserializePart: (s, data) => {
@@ -338,6 +342,8 @@ export const ObjectSerializeFns: {
             }
 
             data.statusFx = Object.keys(StatusFxDefs).filter(() => s.readBoolean()).map(type => ({ type }));
+
+            data.totemActivated = s.readBoolean();
         },
     },
     [ObjectType.Obstacle]: {
