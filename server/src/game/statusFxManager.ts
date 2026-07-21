@@ -110,6 +110,14 @@ export class StatusFxManager extends SchemaManager<StatusFxInstanceInfo<StatusFx
 
             // update logic
             switch (entry.type) {
+                case "regeneration": {
+                    if (now > entry.data.nextTick) {
+                        entry.data.nextTick =
+                            now +
+                            StatusFxProperties.regeneration.msPerHeal(entry.potency);
+                        this.owner.health += StatusFxProperties.regeneration.HEAL_AMOUNT;
+                    }
+                    break;
                 }
             }
 

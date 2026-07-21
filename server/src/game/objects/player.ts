@@ -40,7 +40,7 @@ import { Client } from "../client.ts";
 import type { Game, JoinTokenData } from "../game.ts";
 import { Group, Team } from "../group.ts";
 import { InventoryManager } from "../inventoryManager.ts";
-import { type PerkInstanceInfo, PerkManager } from "../perkManager";
+import { type PerkInstanceInfo, PerkManager } from "../perkManager.ts";
 import { QuestManager } from "../questManager.ts";
 import { NoOpSocket } from "../socket.ts";
 import { type StatusFxInstanceInfo, StatusFxManager } from "../statusFxManager";
@@ -1245,6 +1245,10 @@ export class Player extends BaseGameObject {
         let initialData: StatusFxInstanceData[typeof type] = {};
 
         switch (type) {
+            case "regeneration": {
+                initialData = { nextTick: 0 };
+                break;
+            }
         }
 
         this._statusFxManager.addEntry(type, potency, duration, initialData, conflictPolicy);
@@ -1457,6 +1461,8 @@ export class Player extends BaseGameObject {
 
         this.weaponManager.showNextThrowable();
         this.recalculateScale();
+
+        this.addStatusFx("regeneration", 2, 20e3);
     }
 
     update(dt: number): void {
