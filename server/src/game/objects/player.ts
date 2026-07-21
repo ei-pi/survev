@@ -440,6 +440,11 @@ export class PlayerBarn {
             if (flushPlayerStatus) {
                 player.playerStatusDirty = false;
             }
+
+            if (player.pearlTeleport) {
+                player.pearlTeleport = false;
+                player.pearlStatusSent = true;
+            }
         }
     }
 
@@ -817,6 +822,10 @@ export class Player extends BaseGameObject {
 
     lastStandEffect = false;
     lastStandEffectTicker = 0;
+
+
+    pearlTeleport = false;
+    pearlStatusSent = false;
 
     // if hit by snowball, potato, or coconut: slowed down for "x" seconds
     frozenTicker = 0;
@@ -1621,6 +1630,11 @@ export class Player extends BaseGameObject {
                 util.randomItem(emotes),
                 this.__id,
             );
+        }
+
+        if (this.pearlStatusSent) {
+            this.pearlStatusSent = false;
+            this.setDirty();
         }
 
         if (this.game.gas.isInGas(this.pos)) {
@@ -4335,9 +4349,7 @@ export class Player extends BaseGameObject {
 
         if (emoteMsg.isPing) {
             if (this.debug.teleportToPings) {
-                v2.set(this.pos, msg.pos);
-                this.setPartDirty();
-                this.game.grid.updateObject(this);
+                this.teleportTo(msg.pos);
             }
 
             if (emoteDef.type !== "ping") {
@@ -4370,6 +4382,17 @@ export class Player extends BaseGameObject {
                 ? this.emoteHardTicker
                 : GameConfig.player.emoteHardCooldown * 1.5;
         }
+    }
+
+    teleportTo(target: Vec2, layer?: number) {
+        v2.set(this.pos, target);
+        if (layer === undefined) {
+            this.setPartDirty();
+        } else {
+            this.layer = layer;
+            this.setDirty();
+        }
+        this.game.grid.updateObject(this);
     }
 
     processEditMsg(msg: net.EditMsg) {
