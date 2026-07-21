@@ -15,7 +15,11 @@ import { PerkProperties } from "../../../../shared/defs/gameObjects/perkDefs.ts"
 import type { ThrowableDef } from "../../../../shared/defs/gameObjects/throwableDefs.ts";
 import { UnlockDefs } from "../../../../shared/defs/gameObjects/unlockDefs.ts";
 
-import { type StatusFxInstanceData, type StatusFxKeys } from "../../../../shared/defs/gameObjects/statusFxDefs.ts";
+import {
+    type StatusFxInstanceData,
+    type StatusFxKeys,
+    StatusFxProperties,
+} from "../../../../shared/defs/gameObjects/statusFxDefs.ts";
 import { GameObjectDefs, MapObjectDefs } from "../../../../shared/defs/register.ts";
 import {
     type Action,
@@ -659,6 +663,8 @@ export class Player extends BaseGameObject {
         }
     }
 
+    absorptionHealth = 0;
+
     minBoost = 0;
     lastBoost = 0;
 
@@ -1239,11 +1245,31 @@ export class Player extends BaseGameObject {
 
         this._statusFxManager.addEntry(type, potency, duration, initialData, conflictPolicy);
         this.setDirty();
+
+        switch (type) {
+            case "absorption": {
+                const absorptionEntry = this._statusFxManager.statusFxs.find(entry => entry.type === "absorption")!;
+
+                this.absorptionHealth = math.max(
+                    this.absorptionHealth,
+                    StatusFxProperties.absorption.hp(absorptionEntry.potency),
+                );
+                break;
+            }
+        }
     }
 
     removeStatusFx(type: string): void {
         this._statusFxManager.removeEntry(type);
         this.setDirty();
+
+        switch (type) {
+            case "absorption": {
+                this.absorptionHealth = 0;
+                this.healthDirty = true;
+                break;
+            }
+        }
     }
 
     hasStatusFx(type: string): boolean {
@@ -1449,7 +1475,8 @@ export class Player extends BaseGameObject {
         this.weaponManager.showNextThrowable();
         this.recalculateScale();
 
-        this.addStatusFx("regeneration", 2, 20e3);
+        this.addStatusFx("absorption", 4, Infinity);
+        this.addStatusFx("regeneration", 2, Infinity);
     }
 
     update(dt: number): void {
@@ -2521,7 +2548,14 @@ export class Player extends BaseGameObject {
             this.lastDamagedBy = playerSource;
         }
 
-        this.health -= finalDamage;
+        const absorbed = math.min(finalDamage, this.absorptionHealth);
+        this.absorptionHealth -= absorbed;
+        this.healthDirty = true;
+        finalDamage -= absorbed;
+        if (finalDamage > 0) {
+            this.removeStatusFx("absorption");
+            this.health -= finalDamage;
+        }
 
         if (this.game.isTeamMode) {
             this.setGroupStatuses();

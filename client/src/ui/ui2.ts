@@ -12,6 +12,7 @@ import type { MeleeDef } from "../../../shared/defs/gameObjects/meleeDefs.ts";
 import type { RoleDef } from "../../../shared/defs/gameObjects/roleDefs.ts";
 import type { ObstacleDef } from "../../../shared/defs/mapObjects/obstacles/obstacleDefs.ts";
 
+import { StatusFxDefs } from "../../../shared/defs/gameObjects/statusFxDefs";
 import { GameObjectDefs, MapObjectDefs } from "../../../shared/defs/register.ts";
 import { Action, DamageType, GameConfig, Input, type InventoryItem } from "../../../shared/gameConfig.ts";
 import { PickupMsgType } from "../../../shared/net/net.ts";
@@ -207,6 +208,7 @@ class UiState {
     }));
 
     health = GameConfig.player.health as number;
+    absorptionHealth = 0;
     boost = 0;
     downed = false;
 }
@@ -269,6 +271,7 @@ export class UiManager2 {
         health: {
             inner: domElemById("ui-health-actual"),
             depleted: domElemById("ui-health-depleted"),
+            absorption: domElemById("ui-health-absorption"),
         },
         boost: {
             div: domElemById("ui-boost-counter"),
@@ -669,6 +672,9 @@ export class UiManager2 {
         state.health = activePlayer.m_netData.m_dead
             ? 0
             : math.max(activePlayer.m_localData.m_health, 1);
+        state.absorptionHealth = activePlayer.m_netData.m_dead
+            ? 0
+            : math.max(activePlayer.m_localData.m_absorptionHealth, 0);
         state.boost = activePlayer.m_localData.m_boost;
         state.downed = activePlayer.m_netData.m_downed;
 
@@ -1123,6 +1129,11 @@ export class UiManager2 {
             } else {
                 dom.health.inner.classList.add("ui-bar-danger");
             }
+        }
+        if (patch.absorptionHealth) {
+            dom.health.absorption.style.backgroundColor = `#${StatusFxDefs.absorption.color.toString(16)}`;
+            dom.health.absorption.style.width = `${state.absorptionHealth}%`;
+            dom.health.absorption.style.display = state.absorptionHealth > 0 ? "block" : "none";
         }
         if (patch.boost) {
             const breakPoints = GameConfig.player.boostBreakpoints;
