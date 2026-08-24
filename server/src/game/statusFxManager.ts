@@ -2,10 +2,10 @@ import {
     type StatusFxInstanceData,
     type StatusFxKeys,
     StatusFxProperties,
-} from "../../../shared/defs/gameObjects/statusFxDefs";
-import { math } from "../../../shared/utils/math";
+} from "../../../shared/defs/gameObjects/statusFxDefs.ts";
+import { math } from "../../../shared/utils/math.ts";
 import type { Player } from "./objects/player";
-import { SchemaManager } from "./schemaManager";
+import { SchemaManager } from "./schemaManager.ts";
 
 export type StatusFxInstanceInfos = {
     [S in StatusFxKeys]: {

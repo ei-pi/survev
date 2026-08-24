@@ -1,13 +1,13 @@
 import * as PIXI from "pixi.js-legacy";
 
 import type { LootDef } from "../../../shared/defs/gameObjectDefs.ts";
+import type { BoostDef, HealDef } from "./../../../shared/defs/gameObjects/gearDefs.ts";
 import type { GunDef } from "../../../shared/defs/gameObjects/gunDefs.ts";
 import type { MeleeDef } from "../../../shared/defs/gameObjects/meleeDefs.ts";
 import type { ThrowableDef } from "../../../shared/defs/gameObjects/throwableDefs.ts";
 import type { ObstacleDef } from "../../../shared/defs/mapObjects/obstacles/obstacleDefs.ts";
-import type { BoostDef, HealDef } from "./../../../shared/defs/gameObjects/gearDefs.ts";
 
-import { StatusFxDefs, type StatusFxKeys } from "../../../shared/defs/gameObjects/statusFxDefs";
+import { StatusFxDefs, type StatusFxKeys } from "../../../shared/defs/gameObjects/statusFxDefs.ts";
 import { GameObjectDefs, MapObjectDefs } from "../../../shared/defs/register.ts";
 import { Action, Anim, GameConfig, HasteType, Input, type WeaponSlot } from "../../../shared/gameConfig.ts";
 import type { ObjectData, ObjectType } from "../../../shared/net/objectSerializeFns.ts";
@@ -35,11 +35,11 @@ import { errorLogManager } from "../errorLogs.ts";
 import type { Ctx } from "../game.ts";
 import { helpers, type RGBAColor } from "../helpers.ts";
 import type { InputHandler } from "../input.ts";
+import type { InputBinds } from "./../inputBinds.ts";
 import type { SoundHandle } from "../lib/createJS.ts";
 import type { Map } from "../map.ts";
 import type { Renderer } from "../renderer.ts";
 import type { UiManager2 } from "../ui/ui2.ts";
-import type { InputBinds } from "./../inputBinds.ts";
 import { Pool } from "./objectPool.ts";
 import type { Obstacle } from "./obstacle.ts";
 import type { Emitter, ParticleBarn } from "./particles.ts";

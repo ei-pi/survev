@@ -12,7 +12,7 @@ import type { MeleeDef } from "../../../shared/defs/gameObjects/meleeDefs.ts";
 import type { RoleDef } from "../../../shared/defs/gameObjects/roleDefs.ts";
 import type { ObstacleDef } from "../../../shared/defs/mapObjects/obstacles/obstacleDefs.ts";
 
-import { StatusFxDefs } from "../../../shared/defs/gameObjects/statusFxDefs";
+import { StatusFxDefs } from "../../../shared/defs/gameObjects/statusFxDefs.ts";
 import { GameObjectDefs, MapObjectDefs } from "../../../shared/defs/register.ts";
 import { Action, DamageType, GameConfig, Input, type InventoryItem } from "../../../shared/gameConfig.ts";
 import { PickupMsgType } from "../../../shared/net/net.ts";

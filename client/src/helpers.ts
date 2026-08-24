@@ -4,7 +4,7 @@ import type { MeleeDef } from "../../shared/defs/gameObjects/meleeDefs.ts";
 import { type MapDefKey, MapDefs } from "../../shared/defs/mapDefs.ts";
 import { GameObjectDefs } from "../../shared/defs/register.ts";
 import * as net from "../../shared/net/net.ts";
-import { math } from "../../shared/utils/math";
+import { math } from "../../shared/utils/math.ts";
 import { util } from "../../shared/utils/util.ts";
 import { device } from "./device.ts";
 
